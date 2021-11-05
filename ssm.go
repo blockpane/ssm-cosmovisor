@@ -24,6 +24,7 @@ type PrivValKey struct {
 
 // MustGetKey fetches the private key from SSM, failure is fatal.
 func MustGetKey() *PrivValKey {
+	log.Println("attempting to fetch consensus key from AWS parameter store")
 	if os.Getenv("AWS_REGION") == "" || os.Getenv("AWS_PARAMETER") == "" {
 		log.Fatal("Expected the AWS_REGION and AWS_PARAMETER environment variables to be set")
 	}
@@ -52,5 +53,6 @@ func MustGetKey() *PrivValKey {
 		log.Fatal("invalid private key")
 	}
 
+	log.Printf("retrieved key with public key: %s from parameter store", pk.PubKey.Value)
 	return pk
 }

@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags|log.Lshortfile)
+	log.SetFlags(log.Lshortfile)
 
 	if os.Getenv("USE_SSM_KEY") == "true" || os.Getenv("USE_SSM_KEY") == "TRUE" {
 		pk := scv.MustGetKey()
@@ -39,9 +39,10 @@ func main() {
 		go func() {
 			selfNotify := func(err error) {
 				if err != nil {
+					_ = log.Output(2, err.Error())
 					close(exiting)
 					<-done
-					log.Fatal(err)
+					os.Exit(1)
 				}
 			}
 			e = scv.WritePipeOnce(pk)
@@ -50,6 +51,8 @@ func main() {
 			selfNotify(e)
 			pk = nil
 		}()
+	} else {
+		log.Println("not fetching private consensus key from parameter store.")
 	}
 
 	// Now startup cosmovisor normally, everything below this line is copied from cosmovisor's main.go:

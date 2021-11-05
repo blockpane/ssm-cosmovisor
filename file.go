@@ -26,11 +26,12 @@ func WritePipeOnce(pk *PrivValKey) error {
 		return err
 	}
 
+	_ = os.Remove(dHome+keyfile)
 	err = syscall.Mkfifo(dHome+keyfile, 0600)
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(dHome+keyfile, os.O_RDWR, 0600)
+	f, err := os.OpenFile(dHome+keyfile, os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
@@ -39,7 +40,14 @@ func WritePipeOnce(pk *PrivValKey) error {
 	if err != nil {
 		return err
 	}
+	log.Println("writing key to named pipe")
 	_, err = f.Write(j)
+	if err != nil {
+		return err
+	}
+	//_, err = f.Write([]byte{0})
+	log.Println("key was written to named pipe")
+	err = os.Remove(dHome+keyfile)
 	return err
 }
 
@@ -50,24 +58,17 @@ func WriteStrippedKey(pk PrivValKey) error {
 	if err != nil {
 		return err
 	}
-	key, err := os.Open(dHome+keyfile)
-	if err != nil {
-		return err
-	}
-	fi, err := key.Stat()
-	if err != nil {
-		return err
-	}
-
+	key, _ := os.Open(dHome+keyfile)
 	// cleanup if our pipe still exists
-	if fi.Mode() == os.ModeNamedPipe {
+	if key != nil {
+		fi, _ := key.Stat()
 		_ = key.Close()
-		err = os.Remove(dHome+keyfile)
-		if err != nil {
-			return err
+		if fi.Mode() == os.ModeNamedPipe {
+			err = os.Remove(dHome + keyfile)
+			if err != nil {
+				return err
+			}
 		}
-	} else {
-		_ = key.Close()
 	}
 	sk, err := os.OpenFile(dHome+keyfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
@@ -78,11 +79,13 @@ func WriteStrippedKey(pk PrivValKey) error {
 		_ = sk.Close()
 		return err
 	}
+	log.Println("writing stripped key file")
 	return sk.Close()
 }
 
 // BackupOrig saves the original key to a backup file and unlinks the original file.
 func BackupOrig() error {
+	log.Println("backing up original key")
 	if dHome == "" {
 		log.Fatal("env var DAEMON_HOME must be set, exiting")
 	}
@@ -106,6 +109,7 @@ func BackupOrig() error {
 
 	// if we run into trouble backing up the key, restore the original:
 	undoRemove := func() {
+		log.Println("backup failed: attempting to restore original key")
 		restore, e := os.OpenFile(dHome+keyfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 		if e != nil {
 			log.Println(e)
@@ -135,6 +139,7 @@ func BackupOrig() error {
 		return err
 	}
 
+	log.Println("original key saved")
 	return nil
 }
 
@@ -142,6 +147,7 @@ func BackupOrig() error {
 // this allows having a "safe" key in place, and only acting as a validator when
 // the 'USE_SSM_KEY' env var is true.
 func RestoreOrig() error {
+	log.Println("attempting to restore original key file")
 	backup, err := os.OpenFile(dHome+keyfile+`.orig`, os.O_RDONLY, 0600)
 	if err != nil {
 		return err
@@ -160,6 +166,8 @@ func RestoreOrig() error {
 	}
 	defer restored.Close()
 	_, err = restored.Write(original)
+	if err == nil {
+		log.Println("restored original key file")
+	}
 	return err
 }
-
