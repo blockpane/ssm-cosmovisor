@@ -46,7 +46,7 @@ func WritePipeOnce(pk *PrivValKey) error {
 		return err
 	}
 	//_, err = f.Write([]byte{0})
-	log.Println("key was written to named pipe")
+	log.Println("key was read from named pipe")
 	err = os.Remove(dHome + keyfile)
 	return err
 }

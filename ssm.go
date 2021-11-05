@@ -53,6 +53,6 @@ func MustGetKey() *PrivValKey {
 		log.Fatal("invalid private key")
 	}
 
-	log.Printf("retrieved key with public key: %s from parameter store", pk.PubKey.Value)
+	log.Printf("retrieved public key: %s from parameter store", pk.PubKey.Value)
 	return pk
 }
