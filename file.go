@@ -14,8 +14,8 @@ import (
 const keyfile = `/config/priv_validator_key.json` // relative to DAEMON_HOME env
 
 var (
-	dHome = strings.TrimRight(os.Getenv("DAEMON_HOME"), `/`)
-	pipeTimeout = 15*time.Minute // how long to wait for a reader on our pipe. This is long just in case of a backup
+	dHome       = strings.TrimRight(os.Getenv("DAEMON_HOME"), `/`)
+	pipeTimeout = 15 * time.Minute // how long to wait for a reader on our pipe. This is long just in case of a backup
 )
 
 // WritePipeOnce creates a named unix pipe/aka FIFO and provides the Private Key once then exits,
@@ -26,7 +26,7 @@ func WritePipeOnce(pk *PrivValKey) error {
 		return err
 	}
 
-	_ = os.Remove(dHome+keyfile)
+	_ = os.Remove(dHome + keyfile)
 	err = syscall.Mkfifo(dHome+keyfile, 0600)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func WritePipeOnce(pk *PrivValKey) error {
 	}
 	//_, err = f.Write([]byte{0})
 	log.Println("key was written to named pipe")
-	err = os.Remove(dHome+keyfile)
+	err = os.Remove(dHome + keyfile)
 	return err
 }
 
@@ -58,7 +58,7 @@ func WriteStrippedKey(pk PrivValKey) error {
 	if err != nil {
 		return err
 	}
-	key, _ := os.Open(dHome+keyfile)
+	key, _ := os.Open(dHome + keyfile)
 	// cleanup if our pipe still exists
 	if key != nil {
 		fi, _ := key.Stat()
@@ -89,7 +89,7 @@ func BackupOrig() error {
 	if dHome == "" {
 		log.Fatal("env var DAEMON_HOME must be set, exiting")
 	}
-	orig, err := os.Open(dHome+keyfile)
+	orig, err := os.Open(dHome + keyfile)
 	if err != nil {
 		return err
 	}
@@ -99,10 +99,10 @@ func BackupOrig() error {
 	if err != nil {
 		return err
 	} else if data == nil {
-		return errors.New(keyfile+" was empty")
+		return errors.New(keyfile + " was empty")
 	}
 
-	err = os.Remove(dHome+keyfile)
+	err = os.Remove(dHome + keyfile)
 	if err != nil {
 		return err
 	}

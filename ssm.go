@@ -12,12 +12,12 @@ import (
 // PrivValKey is a simplified version of the tendermint private consensus key file.
 type PrivValKey struct {
 	Address string `json:"address"`
-	PubKey struct {
-		Type string `json:"type"`
+	PubKey  struct {
+		Type  string `json:"type"`
 		Value string `json:"value"`
 	} `json:"pub_key"`
 	PrivKey struct {
-		Type string `json:"type"`
+		Type  string `json:"type"`
 		Value string `json:"value"`
 	} `json:"priv_key"`
 }
